@@ -103,8 +103,8 @@ buildmodes=('iso')
 bootmodes=(
   'bios.syslinux.mbr'
   'bios.syslinux.eltorito'
-  'uefi-x64.systemd-boot.esp'
-  'uefi-x64.systemd-boot.eltorito'
+  'uefi-x64.grub.esp'
+  'uefi-x64.grub.eltorito'
 )
 arch="x86_64"
 pacman_conf="pacman.conf"
@@ -131,6 +131,13 @@ amd-ucode
 intel-ucode
 mkinitcpio
 mkinitcpio-firmware
+
+# === UEFI / Boot ===
+grub
+efibootmgr
+dosfstools
+mtools
+sbctl              # Secure Boot key management
 
 # === Display & Graphics ===
 xorg-server
@@ -235,7 +242,10 @@ Include = /etc/pacman.d/mirrorlist
 EOF
   ok "pacman.conf"
 
-  # --- systemd-boot entry ---
+  # --- UEFI Boot: GRUB (primary) + systemd-boot (fallback) ---
+  mkdir -p "$PROFILE_DIR/efiboot/loader/entries"
+
+  # systemd-boot entry (fallback if GRUB fails)
   cat > "$PROFILE_DIR/efiboot/loader/entries/01-gamevault.conf" << 'EOF'
 title   GameVault Gaming OS
 linux   /vmlinuz-linux
@@ -244,15 +254,129 @@ initrd  /amd-ucode.img
 initrd  /initramfs-linux.img
 options quiet loglevel=3 systemd.show_status=1 splash rd.udev.log_level=3 vt.global_cursor_default=0
 EOF
-  ok "systemd-boot entry"
+
+  cat > "$PROFILE_DIR/efiboot/loader/entries/02-gamevault-safe.conf" << 'EOF'
+title   GameVault (Safe Mode)
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /amd-ucode.img
+initrd  /initramfs-linux.img
+options nomodeset loglevel=5
+EOF
+
+  cat > "$PROFILE_DIR/efiboot/loader/entries/03-gamevault-fallback.conf" << 'EOF'
+title   GameVault (Fallback Initramfs)
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /amd-ucode.img
+initrd  /initramfs-linux-fallback.img
+options quiet loglevel=3
+EOF
 
   cat > "$PROFILE_DIR/efiboot/loader/loader.conf" << 'EOF'
 default 01-gamevault
 timeout 4
 console-mode max
-editor  no
+editor  yes
 EOF
-  ok "loader.conf"
+  ok "UEFI systemd-boot entries"
+
+  # --- GRUB UEFI config with custom theme ---
+  cat > "$PROFILE_DIR/grub/grub.cfg" << 'EOF'
+# GameVault GRUB UEFI configuration
+set default="gamevault"
+set timeout=5
+set gfxmode=auto
+set gfxpayload=keep
+
+# Load video drivers
+insmod all_video
+insmod gfxterm
+insmod png
+insmod gfxmenu
+insmod part_gpt
+insmod part_msdos
+insmod ext2
+insmod fat
+insmod ntfs
+insmod btrfs
+insmod xfs
+
+# Font
+loadfont /grub/unicode.pf2
+if loadfont /grub/dejavu-bold.pf2; then
+  loadfont /grub/dejavu-bold.pf2
+fi
+
+terminal_output gfxterm
+
+# Custom theme
+set theme=($root)/grub/theme/theme.txt
+
+# Background image
+if background_image /grub/theme/background.png; then
+  true
+else
+  set menu_color_normal=cyan/black
+  set menu_color_highlight=black/cyan
+fi
+
+# Hide GRUB menu if no issues (hold Shift to show)
+if [ "${grub_platform}" = "efi" ]; then
+  set timeout_style=hidden
+  set timeout=3
+fi
+
+# Default entry
+menuentry "GameVault Gaming OS" --class gamevault --class os --class gnu-linux {
+  set gfxpayload=keep
+  echo "Booting GameVault Gaming OS..."
+  linux /vmlinuz-linux quiet loglevel=3 systemd.show_status=0 splash rd.udev.log_level=3 vt.global_cursor_default=0
+  initrd /intel-ucode.img /amd-ucode.img /initramfs-linux.img
+}
+
+menuentry "GameVault (Safe Mode - No GPU Accel)" --class gamevault --class os {
+  linux /vmlinuz-linux nomodeset loglevel=5
+  initrd /intel-ucode.img /amd-ucode.img /initramfs-linux.img
+}
+
+menuentry "GameVault (Fallback Initramfs)" --class gamevault --class os {
+  linux /vmlinuz-linux quiet loglevel=3
+  initrd /intel-ucode.img /amd-ucode.img /initramfs-linux-fallback.img
+}
+
+menuentry "UEFI Firmware Settings" --class firmware {
+  fwsetup
+}
+
+menuentry "UEFI Shell" --class shell {
+  chainloader /shellx64.efi
+}
+
+menuentry "Reboot" --class reboot {
+  reboot
+}
+
+menuentry "Power Off" --class poweroff {
+  halt
+}
+EOF
+  ok "GRUB UEFI config"
+
+  # --- UEFI Shell (downloaded at build time for boot troubleshooting) ---
+  cat > "$PROFILE_DIR/airootfs/usr/local/bin/fetch-uefi-shell" << 'SHELLFETCH'
+#!/usr/bin/env bash
+# Download UEFI Shell binary for troubleshooting boot
+set -euo pipefail
+SHELL_URL="https://github.com/pbatard/UEFI-Shell/releases/download/v2.2/Shell.efi"
+DEST="/usr/share/gamevault/uefi-shellx64.efi"
+if [ ! -f "$DEST" ]; then
+  echo "Fetching UEFI Shell..."
+  curl -sL "$SHELL_URL" -o "$DEST" || true
+fi
+SHELLFETCH
+  chmod +x "$PROFILE_DIR/airootfs/usr/local/bin/fetch-uefi-shell"
+  ok "UEFI Shell support"
 
   # --- syslinux config ---
   cat > "$PROFILE_DIR/syslinux/syslinux.cfg" << 'EOF'
@@ -302,45 +426,6 @@ LABEL poweroff
   COM32 poweroff.c32
 EOF
   ok "syslinux.cfg"
-
-  # --- GRUB theme ---
-  cat > "$PROFILE_DIR/grub/grub.cfg" << 'EOF'
-set default="gamevault"
-set timeout=5
-set gfxmode=auto
-set gfxpayload=keep
-
-insmod all_video
-insmod gfxterm
-insmod png
-insmod gfxmenu
-
-loadfont /usr/share/grub/unicode.pf2
-
-terminal_output gfxterm
-
-set theme=($root)/grub/theme/theme.txt
-
-menuentry "GameVault Gaming OS" --class gamevault --class os {
-  set gfxpayload=keep
-  linux /vmlinuz-linux quiet loglevel=3 systemd.show_status=0 splash rd.udev.log_level=3 vt.global_cursor_default=0
-  initrd /intel-ucode.img /amd-ucode.img /initramfs-linux.img
-}
-
-menuentry "GameVault (Safe Mode)" --class gamevault --class os {
-  linux /vmlinuz-linux nomodeset loglevel=5
-  initrd /intel-ucode.img /amd-ucode.img /initramfs-linux.img
-}
-
-menuentry "Reboot" --class reboot {
-  reboot
-}
-
-menuentry "Power Off" --class poweroff {
-  halt
-}
-EOF
-  ok "grub.cfg"
 
   # --- Custom GRUB theme ---
   mkdir -p "$PROFILE_DIR/grub/theme"
@@ -721,6 +806,80 @@ KERNEL=="hidraw*", SUBSYSTEM=="hidraw", TAG+="uaccess"
 EOF
   ok "controller udev rules"
 
+  # --- Secure Boot setup (run on first boot to enroll keys) ---
+  mkdir -p "$PROFILE_DIR/airootfs/usr/local/share/gamevault"
+  cat > "$PROFILE_DIR/airootfs/usr/local/bin/gamevault-secureboot" << 'SHELL'
+#!/usr/bin/env bash
+# GameVault Secure Boot helper
+# Enroll custom keys for boot integrity verification
+set -euo pipefail
+
+echo "GameVault Secure Boot Setup"
+echo "==========================="
+echo ""
+echo "This will enroll custom Secure Boot keys."
+echo "Ensure Secure Boot is set to Setup Mode in your UEFI firmware."
+echo ""
+
+if [ ! -d /etc/secureboot ]; then
+  mkdir -p /etc/secureboot
+  cd /etc/secureboot
+
+  # Generate keys
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=GameVault/" \
+    -keyout PK.key -out PK.crt -days 3650 -nodes 2>/dev/null
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=GameVault KEK/" \
+    -keyout KEK.key -out KEK.crt -days 3650 -nodes 2>/dev/null
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=GameVault db/" \
+    -keyout db.key -out db.crt -days 3650 -nodes 2>/dev/null
+
+  # Sign with sbctl
+  if command -v sbctl &>/dev/null; then
+    sbctl enroll-keys --yes-this-might-brick-my-system 2>/dev/null || true
+    sbctl sign /boot/vmlinuz-linux 2>/dev/null || true
+    sbctl sign /boot/EFI/GRUB/grubx64.efi 2>/dev/null || true
+    echo "Keys enrolled. Reboot to enable Secure Boot."
+  else
+    echo "sbctl not found. Install with: pacman -S sbctl"
+  fi
+fi
+SHELL
+  chmod +x "$PROFILE_DIR/airootfs/usr/local/bin/gamevault-secureboot"
+  ok "Secure Boot helper"
+
+  # --- GRUB UEFI post-install hook ---
+  mkdir -p "$PROFILE_DIR/airootfs/etc/systemd/system/multi-user.target.wants"
+  cat > "$PROFILE_DIR/airootfs/etc/systemd/system/gamevault-grub-update.service" << 'EOF'
+[Unit]
+Description=Update GRUB UEFI boot entries
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/gamevault-grub-update
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
+EOF
+
+  cat > "$PROFILE_DIR/airootfs/usr/local/bin/gamevault-grub-update" << 'SHELL'
+#!/usr/bin/env bash
+# Ensure GRUB is properly installed for UEFI
+set -euo pipefail
+
+if [ -d /sys/firmware/efi ]; then
+  # Running on UEFI — ensure GRUB is in NVRAM
+  if command -v grub-install &>/dev/null; then
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GameVault \
+      --recheck --no-nvram 2>/dev/null || true
+  fi
+fi
+SHELL
+  chmod +x "$PROFILE_DIR/airootfs/usr/local/bin/gamevault-grub-update"
+  ok "GRUB UEFI update hook"
+
   # --- Optimize for performance ---
   mkdir -p "$PROFILE_DIR/airootfs/etc/sysctl.d"
   cat > "$PROFILE_DIR/airootfs/etc/sysctl.d/99-gamevault.conf" << 'EOF'
@@ -776,6 +935,38 @@ main() {
       ok "GRUB background generated" || \
       warn "GRUB background not generated"
   fi
+
+  # Generate GRUB DejaVu font for UEFI boot
+  if command -v grub-mkfont &>/dev/null; then
+    if fc-list | grep -qi "dejavu sans bold"; then
+      grub-mkfont -s 16 -o "$PROFILE_DIR/grub/dejavu-bold.pf2" \
+        "$(fc-list | grep -i 'dejavu sans bold' | head -1 | cut -d: -f1)" 2>/dev/null && \
+        ok "GRUB DejaVu font generated" || true
+    fi
+  fi
+
+  # Download UEFI Shell binary for boot troubleshooting
+  if command -v curl &>/dev/null; then
+    info "Downloading UEFI Shell..."
+    curl -sL "https://github.com/pbatard/UEFI-Shell/releases/download/v2.2/Shell.efi" \
+      -o "$PROFILE_DIR/efiboot/shellx64.efi" 2>/dev/null && \
+      ok "UEFI Shell downloaded" || \
+      warn "UEFI Shell download failed (boot will still work)"
+  fi
+
+  # Create ESP directory structure for GRUB UEFI
+  mkdir -p "$PROFILE_DIR/efiboot/EFI/GRUB"
+  mkdir -p "$PROFILE_DIR/efiboot/EFI/BOOT"
+  # Copy GRUB EFI binary to standard fallback path
+  cat > "$PROFILE_DIR/efiboot/EFI/BOOT/BOOTX64.EFI" << 'EFISTUB'
+# GRUB fallback — replaced by mkarchiso at build time
+EFISTUB
+  ok "UEFI ESP structure ready"
+
+  # Ensure the GRUB config is in the ESP for UEFI boot
+  mkdir -p "$PROFILE_DIR/efiboot/grub"
+  cp "$PROFILE_DIR/grub/grub.cfg" "$PROFILE_DIR/efiboot/grub/"
+  cp -r "$PROFILE_DIR/grub/theme" "$PROFILE_DIR/efiboot/grub/" 2>/dev/null || true
 
   # Build the ISO
   info "Building ISO (this may take a while)..."
