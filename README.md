@@ -68,6 +68,8 @@ Click the **Fullscreen** button in the top bar or press **F11** to enter fullscr
 
 ```
 ├── index.html                    # Standalone launcher (zero deps, open in browser)
+├── manifest.json                 # PWA manifest (iOS/Android home screen)
+├── service-worker.js             # PWA service worker (offline support)
 ├── .gitignore
 ├── README.md
 ├── outputs/
@@ -126,6 +128,40 @@ npm run electron:build           # Build platform installers
 ```
 
 Outputs go to `work/gaming-launcher/release/`.
+
+## 📱 iOS (iPhone / iPad)
+
+### Option A: PWA (no Xcode needed)
+
+Open `index.html` in Safari, tap **Share → Add to Home Screen**. Works offline via service worker. Fullscreen mode hides Safari chrome.
+
+### Option B: Native SwiftUI App (Xcode)
+
+```bash
+cd ios
+chmod +x generate-icons.sh
+./generate-icons.sh               # Auto-generate all icon sizes from SVG
+open GameVault.xcodeproj          # Open in Xcode
+```
+
+Then **⌘R** to run on simulator or device. The app bundles the full web launcher as a WKWebView with:
+
+- Fullscreen edge-to-edge with notch/safe area support
+- Landscape + portrait orientation support
+- External links open in Safari
+- Dark launch screen with GameVault branding
+- No navigation bars — pure fullscreen gaming UI
+
+| iOS File | Purpose |
+|---|---|
+| `ios/GameVault/GameVaultApp.swift` | SwiftUI app entry |
+| `ios/GameVault/ContentView.swift` | WKWebView wrapper |
+| `ios/GameVault/Info.plist` | App config, orientations, fullscreen |
+| `ios/GameVault/LaunchScreen.storyboard` | Launch screen |
+| `ios/icon.svg` | Master icon source |
+| `ios/generate-icons.sh` | Icon generation script |
+
+On first launch, the app copies the web bundle from the project root into the app bundle. Rebuild when `index.html` changes.
 
 ## 📜 License
 

@@ -2,7 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GameVault">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="GameVault">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="ios/App/Assets.xcassets/AppIcon.appiconset/icon-180.png">
+<link rel="apple-touch-startup-image" href="ios/splash.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GameVault">
+<meta name="twitter:description" content="Cross-platform gaming launcher with Steam, Xbox Game Pass & Epic Games Store">
 <title>GameVault — Gaming Launcher</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -283,6 +296,34 @@ body.fs #app{overflow:hidden}
   #fs-hero .hero-cover{width:100px;height:140px;font-size:26px}
   #fs-hero .hero-info h1{font-size:22px}
 }
+
+/* iOS Safe Area & Notch Support */
+@supports(padding:max(0px)){
+  #topbar{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
+  #sidebar{padding-top:max(20px,env(safe-area-inset-top))}
+  #content{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
+  #fs-topbar{padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right));padding-top:max(14px,env(safe-area-inset-top))}
+  #fs-hero{padding-left:max(56px,env(safe-area-inset-left));padding-right:max(56px,env(safe-area-inset-right))}
+  #fs-shelves{padding-left:max(56px,env(safe-area-inset-left));padding-right:max(56px,env(safe-area-inset-right))}
+  #overlay{padding-left:max(40px,env(safe-area-inset-left));padding-right:max(40px,env(safe-area-inset-right))}
+  .modal{max-height:calc(90vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+}
+
+/* iOS home indicator bar spacing */
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  #sidebar{padding-bottom:max(20px,env(safe-area-inset-bottom))}
+  #content{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+  #fs-shelves{padding-bottom:max(48px,env(safe-area-inset-bottom))}
+  #fs-content{padding-bottom:max(0px,env(safe-area-inset-bottom))}
+  .modal-body{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+}
+
+/* Prevent text selection on iOS */
+body{-webkit-touch-callout:none;-webkit-user-select:none}
+input,textarea{-webkit-user-select:text}
+
+/* iOS momentum scrolling */
+#content,#fs-content,#fs-shelves{-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
@@ -851,6 +892,11 @@ $('#modal-store-btn').addEventListener('click',function(){
     if(linuxSection)linuxSection.style.display='';
   }
 })();
+
+// --- Service Worker Registration (PWA) ---
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('./service-worker.js').catch(function(){});
+}
 
 renderLibrary();
 updateClock();

@@ -12,3 +12,11 @@ Thumbs.db
 __pycache__/
 *.pyc
 .vite/
+
+# iOS generated files
+ios/GameVault/Assets.xcassets/AppIcon.appiconset/icon-*.png
+ios/*.xcuserdata
+ios/Pods/
+ios/build/
+*.app
+DerivedData/
