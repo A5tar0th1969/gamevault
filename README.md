@@ -68,6 +68,9 @@ Click the **Fullscreen** button in the top bar or press **F11** to enter fullscr
 
 ```
 ├── index.html                    # Standalone launcher (zero deps, open in browser)
+├── iso/                          # Bootable gaming OS ISO builder
+│   ├── build-iso.sh              # Build script (requires Arch Linux + archiso)
+│   └── README.md                 # ISO build instructions
 ├── .gitignore
 ├── README.md
 ├── outputs/
@@ -116,6 +119,25 @@ GameVault has full Linux support:
 | AppImage / deb / rpm / snap | ✅ Build targets |
 
 Run `./install-linux.sh` to install system-wide, or `./start.sh` to launch directly.
+
+## 💿 Bootable Gaming OS (SteamOS-like)
+
+Build a live ISO that boots directly into GameVault fullscreen kiosk mode — like SteamOS.
+
+```bash
+cd iso
+sudo ./build-iso.sh             # Requires Arch Linux + archiso
+sudo dd bs=4M if=out/gamevault-*.iso of=/dev/sdX status=progress  # Write to USB
+```
+
+The OS includes:
+- Xorg + Openbox + Chromium kiosk mode → GameVault launcher
+- Steam, Lutris, Wine pre-installed
+- Vulkan/Mesa for AMD/Intel/NVIDIA
+- Gamepad controller support
+- PipeWire audio, NetworkManager, dark GRUB theme
+
+See `iso/README.md` for full details.
 
 ## 🛠️ Build for Distribution
 
