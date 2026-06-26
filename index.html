@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameVault — Gaming Launcher</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--bg2:#121212;--card:#161616;--card-hover:#1e1e1e;--border:#2a2a2a;--text:#e0e0e0;--text2:#888;--text3:#555;--accent:#4a9eff;--steam:#66c0f4;--xbox:#9bf00b;--epic:#9b59b6;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,.5);--transition:.3s cubic-bezier(.4,0,.2,1)}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow:hidden;line-height:1.4;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#555}
+
+#app{display:flex;height:100vh;width:100vw;position:relative;overflow:hidden}
+
+#sidebar{width:240px;min-width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0;z-index:10;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+#sidebar .logo{padding:0 24px 24px;display:flex;align-items:center;gap:10px;color:var(--accent);font-size:22px;font-weight:800;letter-spacing:-.5px;border-bottom:1px solid var(--border);margin-bottom:12px;user-select:none}
+#sidebar .logo span{background:var(--accent);color:#000;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:16px;font-weight:800;transition:var(--transition)}
+#sidebar .logo:hover span{transform:scale(1.05);border-radius:10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;cursor:pointer;color:var(--text2);transition:all var(--transition);font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:inherit;position:relative}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--accent);background:rgba(74,158,255,.08)}
+.nav-item.active::after{content:'';position:absolute;right:0;top:8px;bottom:8px;width:2px;background:var(--accent);border-radius:2px 0 0 2px}
+.nav-item .icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.sidebar-divider{height:1px;background:var(--border);margin:8px 24px}
+.sidebar-spacer{flex:1}
+#mobile-menu-btn{display:none;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;font-family:inherit;transition:var(--transition);line-height:1}
+#mobile-menu-btn:hover{color:var(--text)}
+#sidebar-overlay{display:none;position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.6);backdrop-filter:blur(2px)}
+
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+#topbar{display:flex;align-items:center;padding:12px 24px;background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;height:56px;min-height:56px}
+#topbar .view-title{font-size:16px;font-weight:600;white-space:nowrap;min-width:140px;user-select:none}
+.search-wrap{flex:1;max-width:480px;margin:0 auto;position:relative;width:100%}
+.search-wrap input{width:100%;padding:8px 36px 8px 36px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;outline:none;transition:all var(--transition);font-family:inherit}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,158,255,.12);background:var(--bg2)}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;pointer-events:none}
+.search-wrap .search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;display:none;padding:4px 8px;border-radius:4px;font-family:inherit;transition:var(--transition)}
+.search-wrap .search-clear:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.search-wrap .search-clear.show{display:block}
+#fullscreen-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:16px;transition:all var(--transition);font-family:inherit;font-weight:500;display:flex;align-items:center;gap:4px}
+#fullscreen-btn:hover{color:var(--text);border-color:var(--text2);background:rgba(255,255,255,.04);transform:scale(1.02)}
+#fullscreen-btn:active{transform:scale(.98)}
+#fullscreen-btn .label{font-size:11px;font-weight:500}
+
+#content{flex:1;overflow-y:auto;padding:24px}
+.view{display:none;animation:fadeIn .35s ease forwards}
+.view.active{display:block}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.library-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.library-header h1{font-size:24px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+.library-count{font-size:13px;color:var(--text2);font-weight:400}
+.filter-group{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;transition:all var(--transition);font-family:inherit;font-weight:500;user-select:none}
+.filter-btn:hover{color:var(--text);border-color:var(--text2);background:rgba(255,255,255,.03)}
+.filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600;box-shadow:0 2px 8px rgba(74,158,255,.25)}
+
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;animation:fadeIn .4s ease}
+.game-card{background:var(--card);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all var(--transition);border:1px solid var(--border);animation:scaleIn .35s ease forwards;opacity:0;position:relative}
+.game-card:nth-child(1){animation-delay:0s}
+.game-card:nth-child(2){animation-delay:.03s}
+.game-card:nth-child(3){animation-delay:.06s}
+.game-card:nth-child(4){animation-delay:.09s}
+.game-card:nth-child(5){animation-delay:.12s}
+.game-card:nth-child(6){animation-delay:.15s}
+.game-card:nth-child(7){animation-delay:.18s}
+.game-card:nth-child(8){animation-delay:.21s}
+.game-card:nth-child(9){animation-delay:.24s}
+.game-card:nth-child(10){animation-delay:.27s}
+.game-card:nth-child(11){animation-delay:.3s}
+.game-card:nth-child(12){animation-delay:.33s}
+.game-card:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 8px 30px rgba(0,0,0,.6);border-color:var(--accent)}
+.game-card:active{transform:translateY(-2px) scale(1.01)}
+.game-card.not-installed{opacity:.7}
+.game-card.not-installed:hover{opacity:1}
+.game-card .game-overlay-icon{position:absolute;top:10px;right:10px;z-index:2;background:rgba(0,0,0,.5);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0;transition:var(--transition);backdrop-filter:blur(4px)}
+.game-card:hover .game-overlay-icon{opacity:1}
+.game-cover{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;position:relative;overflow:hidden;background-size:cover;background-position:center;transition:var(--transition)}
+.game-cover .initials{z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.5);letter-spacing:2px;transition:var(--transition);user-select:none}
+.game-card:hover .game-cover .initials{transform:scale(1.15)}
+.game-card:hover .game-cover{filter:brightness(1.1)}
+.game-card.not-installed .game-cover{filter:saturate(.5) brightness(.8)}
+.game-card.not-installed:hover .game-cover{filter:saturate(.8) brightness(1)}
+.game-info{padding:12px 14px 14px;position:relative}
+.game-name{font-size:14px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.platform-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;user-select:none}
+.platform-badge.steam{background:rgba(102,192,244,.15);color:var(--steam)}
+.platform-badge.xbox{background:rgba(155,240,11,.15);color:var(--xbox)}
+.platform-badge.epic{background:rgba(155,89,182,.15);color:var(--epic)}
+.platform-badge.local{background:rgba(255,255,255,.08);color:var(--text2)}
+.installed-badge{font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(74,158,255,.12);color:var(--accent);font-weight:600;user-select:none}
+
+.store-header{display:flex;align-items:center;gap:14px;margin-bottom:8px;animation:slideIn .3s ease}
+.store-header .store-icon{font-size:32px;line-height:1}
+.store-header h1{font-size:24px;font-weight:700;letter-spacing:-.3px}
+.store-desc{color:var(--text2);font-size:14px;margin-bottom:16px;line-height:1.6;max-width:600px;animation:slideUp .35s ease}
+.store-actions{display:flex;gap:10px;margin-bottom:24px;animation:slideUp .4s ease}
+.store-actions button{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all var(--transition);font-family:inherit;user-select:none}
+.store-actions .btn-primary{background:var(--accent);color:#000}
+.store-actions .btn-primary:hover{filter:brightness(1.2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(74,158,255,.3)}
+.store-actions .btn-primary:active{transform:translateY(0)}
+.store-actions .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.store-actions .btn-secondary:hover{background:var(--card-hover);border-color:var(--text2);transform:translateY(-1px)}
+.store-color-steam{color:var(--steam)}
+.store-color-xbox{color:var(--xbox)}
+.store-color-epic{color:var(--epic)}
+
+.placeholder-msg{text-align:center;padding:60px 20px;color:var(--text2);animation:fadeIn .5s ease}
+.placeholder-msg .big-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.5}
+.placeholder-msg p{font-size:14px;margin-bottom:6px}
+.placeholder-msg .sub{font-size:12px;color:var(--text3)}
+
+.settings-section{margin-bottom:28px;animation:fadeIn .4s ease}
+.settings-section h2{font-size:16px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;animation:slideUp .3s ease}
+.setting-row+.setting-row{border-top:1px solid rgba(255,255,255,.03)}
+.setting-row label{font-size:14px;color:var(--text);cursor:pointer}
+.setting-row select{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit;min-width:120px;transition:var(--transition)}
+.setting-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,158,255,.12)}
+.setting-row select:hover{border-color:var(--text2)}
+.toggle-switch{position:relative;width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;transition:background var(--transition);border:none;padding:0;flex-shrink:0}
+.toggle-switch.active{background:var(--accent)}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform var(--transition);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-switch.active::after{transform:translateX(20px)}
+.btn-action{padding:9px 20px;border-radius:8px;border:none;background:var(--accent);color:#000;cursor:pointer;font-size:13px;font-weight:600;transition:all var(--transition);font-family:inherit;user-select:none}
+.btn-action:hover{filter:brightness(1.2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(74,158,255,.25)}
+.btn-action:active{transform:translateY(0)}
+.about-info{font-size:13px;color:var(--text2);line-height:1.7;padding:16px;background:var(--card);border-radius:8px;border:1px solid var(--border)}
+.about-info strong{color:var(--text)}
+
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:40px;animation:fadeIn .2s ease;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:16px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .35s ease;border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.7)}
+#modal-banner{height:200px;position:relative;display:flex;align-items:flex-end;padding:24px;border-radius:16px 16px 0 0;background-size:cover;background-position:center}
+#modal-banner .gradient-overlay{position:absolute;inset:0;border-radius:16px 16px 0 0;background:linear-gradient(to bottom,transparent 25%,var(--bg2) 95%)}
+#modal-banner h2{position:relative;z-index:1;font-size:26px;font-weight:700;letter-spacing:-.3px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.modal-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.55);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:all var(--transition);font-family:inherit}
+.modal-close:hover{background:rgba(255,255,255,.2);transform:rotate(90deg);border-color:rgba(255,255,255,.3)}
+.modal-body{padding:20px 24px 24px}
+.modal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.modal-tags span{padding:4px 12px;border-radius:4px;background:var(--card);font-size:11px;color:var(--text2);border:1px solid var(--border);font-weight:500;transition:var(--transition)}
+.modal-tags span:first-child{background:rgba(74,158,255,.1);color:var(--accent);border-color:rgba(74,158,255,.2)}
+.modal-desc{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.modal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.modal-meta .meta-item{padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);transition:var(--transition)}
+.modal-meta .meta-item:hover{border-color:var(--text2);background:var(--card-hover)}
+.modal-meta .meta-item .label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:500}
+.modal-meta .meta-item .value{font-size:13px;font-weight:500}
+.modal-actions{display:flex;gap:10px}
+.modal-actions button{padding:11px 28px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all var(--transition);font-family:inherit;user-select:none}
+.modal-actions .btn-play{background:var(--accent);color:#000}
+.modal-actions .btn-play:hover{filter:brightness(1.2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(74,158,255,.3)}
+.modal-actions .btn-store{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.modal-actions .btn-store:hover{background:var(--card-hover);border-color:var(--text2);transform:translateY(-1px)}
+
+body.fs #app{overflow:hidden}
+#fullscreen{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column;animation:fadeIn .35s ease}
+#fullscreen.open{display:flex}
+
+#fs-topbar{display:flex;align-items:center;padding:14px 28px;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);gap:14px;z-index:10;border-bottom:1px solid rgba(255,255,255,.06)}
+#fs-topbar .fs-logo{font-size:20px;font-weight:800;color:var(--accent);display:flex;align-items:center;gap:8px;letter-spacing:-.3px;flex-shrink:0;user-select:none}
+#fs-topbar .fs-logo span{background:var(--accent);color:#000;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:12px;font-weight:800}
+#fs-nav{display:flex;gap:2px;margin-left:20px;flex-wrap:wrap}
+#fs-nav button{background:none;border:none;color:var(--text2);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;transition:all var(--transition);font-family:inherit;font-weight:500;white-space:nowrap;user-select:none}
+#fs-nav button:hover{color:var(--text);background:rgba(255,255,255,.06)}
+#fs-nav button.active{color:#fff;background:rgba(74,158,255,.15)}
+#fs-nav button .fs-nav-icon{font-size:15px;vertical-align:middle;margin-right:5px}
+#fs-clock{margin-left:auto;font-size:14px;color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.5px;font-weight:500;min-width:68px;text-align:right;user-select:none}
+#fs-exit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:7px 18px;border-radius:8px;cursor:pointer;font-size:12px;transition:all var(--transition);font-family:inherit;font-weight:500;flex-shrink:0;user-select:none}
+#fs-exit:hover{color:#fff;border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.12);transform:scale(1.02)}
+#fs-exit:active{transform:scale(.98)}
+
+#fs-content{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+#fs-hero{position:relative;min-height:440px;display:flex;align-items:flex-end;padding:48px 56px;overflow:hidden}
+#fs-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(60px) brightness(.28) saturate(1.3);transform:scale(1.15);transition:var(--transition)}
+#fs-hero .hero-content{position:relative;z-index:2;display:flex;gap:36px;align-items:flex-end;width:100%;animation:slideUp .5s ease}
+#fs-hero .hero-cover{width:180px;height:240px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:700;flex-shrink:0;box-shadow:0 16px 48px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.1);background-size:cover;background-position:center;transition:all var(--transition)}
+#fs-hero .hero-cover .initials{text-shadow:0 2px 16px rgba(0,0,0,.4)}
+#fs-hero .hero-info{flex:1;padding-bottom:6px}
+#fs-hero .hero-info h1{font-size:38px;font-weight:700;margin-bottom:6px;letter-spacing:-.5px;line-height:1.1;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+#fs-hero .hero-info .hero-badge{display:inline-block;font-size:11px;padding:4px 14px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+#fs-hero .hero-info .hero-dev{font-size:14px;color:var(--text2);margin-bottom:8px}
+#fs-hero .hero-info .hero-desc{font-size:13px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:18px;max-width:600px}
+#fs-hero .hero-actions{display:flex;gap:12px}
+#fs-hero .hero-actions button{padding:12px 34px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all var(--transition);font-family:inherit;user-select:none}
+#fs-hero .hero-actions .btn-play{background:var(--accent);color:#000;font-size:15px;display:flex;align-items:center;gap:8px}
+#fs-hero .hero-actions .btn-play:hover{filter:brightness(1.2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(74,158,255,.35)}
+#fs-hero .hero-actions .btn-play:active{transform:translateY(0)}
+#fs-hero .hero-actions .btn-info{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+#fs-hero .hero-actions .btn-info:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}
+
+#fs-shelves{padding:28px 56px 48px;display:flex;flex-direction:column;gap:32px}
+.fs-shelf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;animation:slideUp .4s ease}
+.fs-shelf-header h2{font-size:18px;font-weight:600;letter-spacing:-.2px}
+.fs-shelf-header a{color:var(--accent);font-size:13px;cursor:pointer;text-decoration:none;font-weight:500;transition:var(--transition)}
+.fs-shelf-header a:hover{text-decoration:underline;opacity:.85}
+.fs-shelf{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;scroll-behavior:smooth}
+.fs-shelf::-webkit-scrollbar{height:4px}
+.fs-shelf-card{flex-shrink:0;cursor:pointer;transition:all var(--transition);border-radius:12px;overflow:hidden;background:var(--card);border:1px solid var(--border);width:160px;animation:scaleIn .35s ease forwards;opacity:0}
+.fs-shelf-card:nth-child(1){animation-delay:0s}
+.fs-shelf-card:nth-child(2){animation-delay:.05s}
+.fs-shelf-card:nth-child(3){animation-delay:.1s}
+.fs-shelf-card:nth-child(4){animation-delay:.15s}
+.fs-shelf-card:nth-child(5){animation-delay:.2s}
+.fs-shelf-card:nth-child(6){animation-delay:.25s}
+.fs-shelf-card:nth-child(7){animation-delay:.3s}
+.fs-shelf-card:nth-child(8){animation-delay:.35s}
+.fs-shelf-card:nth-child(9){animation-delay:.4s}
+.fs-shelf-card:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 16px 40px rgba(0,0,0,.5);border-color:rgba(255,255,255,.1)}
+.fs-shelf-card:active{transform:translateY(-3px) scale(1.01)}
+.fs-shelf-card .shelf-cover{width:160px;height:90px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;background-size:cover;background-position:center;transition:var(--transition)}
+.fs-shelf-card:hover .shelf-cover .initials{transform:scale(1.15)}
+.fs-shelf-card .shelf-info{padding:10px 12px}
+.fs-shelf-card .shelf-info .shelf-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:136px;margin-bottom:6px}
+.fs-shelf-card .shelf-info .shelf-badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:inline-block}
+.fs-shelf-card.not-installed{opacity:.55}
+.fs-shelf-card.not-installed:hover{opacity:.85}
+
+.fs-store-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;animation:slideUp .5s ease}
+.fs-store-card{background:var(--card);border-radius:14px;padding:28px 24px;cursor:pointer;transition:all var(--transition);border:1px solid var(--border);text-align:center;position:relative;overflow:hidden}
+.fs-store-card::before{content:'';position:absolute;inset:0;opacity:0;transition:var(--transition);border-radius:14px}
+.fs-store-card[data-view="steam"]::before{background:radial-gradient(circle at 50% 0%,rgba(102,192,244,.08),transparent 70%)}
+.fs-store-card[data-view="xbox"]::before{background:radial-gradient(circle at 50% 0%,rgba(155,240,11,.08),transparent 70%)}
+.fs-store-card[data-view="epic"]::before{background:radial-gradient(circle at 50% 0%,rgba(155,89,182,.08),transparent 70%)}
+.fs-store-card:hover::before{opacity:1}
+.fs-store-card:hover{transform:translateY(-6px);box-shadow:0 12px 36px rgba(0,0,0,.5);border-color:rgba(255,255,255,.08)}
+.fs-store-card:active{transform:translateY(-2px)}
+.fs-store-card .fs-store-icon{font-size:38px;margin-bottom:10px;position:relative;z-index:1}
+.fs-store-card h3{font-size:16px;font-weight:600;margin-bottom:6px;position:relative;z-index:1}
+.fs-store-card p{font-size:12px;color:var(--text2);position:relative;z-index:1;line-height:1.4}
+.fs-store-card .games-count{font-size:11px;color:var(--text3);margin-top:10px;position:relative;z-index:1;font-weight:500}
+
+.fs-section-divider{border:none;height:1px;background:var(--border);margin:0;animation:fadeIn .5s ease}
+
+@media(max-width:768px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);z-index:50;box-shadow:4px 0 30px rgba(0,0,0,.5)}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay{display:block;opacity:0;pointer-events:none;transition:opacity .3s ease}
+  #sidebar.open~#sidebar-overlay{opacity:1;pointer-events:auto}
+  #mobile-menu-btn{display:block;font-size:22px}
+  #topbar .view-title{min-width:auto;font-size:14px}
+  #topbar{padding:10px 14px;gap:10px}
+  .search-wrap{max-width:100%}
+  #fullscreen-btn .label{display:none}
+  #content{padding:16px}
+  .game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .store-header h1{font-size:20px}
+  .modal-meta{grid-template-columns:1fr}
+  #overlay{padding:16px}
+  #modal-banner{height:160px}
+  #modal-banner h2{font-size:22px}
+  #fs-hero{padding:24px 20px 20px;min-height:360px}
+  #fs-hero .hero-content{flex-direction:column;align-items:flex-start;gap:20px}
+  #fs-hero .hero-cover{width:120px;height:160px;font-size:32px}
+  #fs-hero .hero-info h1{font-size:26px}
+  #fs-hero .hero-actions button{padding:10px 24px;font-size:13px}
+  #fs-shelves{padding:20px 20px 36px;gap:24px}
+  .fs-store-cards{grid-template-columns:1fr}
+  #fs-topbar{padding:10px 14px;gap:8px;flex-wrap:wrap}
+  #fs-nav{margin-left:0;order:3;width:100%;justify-content:center}
+  #fs-nav button{padding:5px 10px;font-size:12px}
+  #fs-clock{min-width:auto;font-size:13px}
+  .fs-store-card{padding:20px}
+}
+@media(max-width:480px){
+  .game-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+  .library-header{flex-direction:column;align-items:flex-start}
+  .filter-group{width:100%}
+  .filter-btn{flex:1;text-align:center;font-size:11px;padding:5px 10px}
+  #fs-hero{padding:16px;min-height:300px}
+  #fs-hero .hero-cover{width:100px;height:140px;font-size:26px}
+  #fs-hero .hero-info h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo"><span>GV</span> GameVault</div>
+    <button class="nav-item active" data-view="library"><span class="icon">🎮</span> Library</button>
+    <button class="nav-item" data-view="steam"><span class="icon">🟦</span> Steam</button>
+    <button class="nav-item" data-view="xbox"><span class="icon">🟩</span> Xbox Game Pass</button>
+    <button class="nav-item" data-view="epic"><span class="icon">🟪</span> Epic Games</button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-item" data-view="settings"><span class="icon">⚙️</span> Settings</button>
+  </aside>
+  <div id="sidebar-overlay"></div>
+
+  <div id="main">
+    <div id="topbar">
+      <button id="mobile-menu-btn">☰</button>
+      <div class="view-title" id="view-title">Game Library</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search games..." autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="search-clear">✕</button>
+      </div>
+      <button id="fullscreen-btn"><span class="label">Fullscreen</span> ⛶</button>
+    </div>
+    <div id="content">
+      <div class="view active" id="view-library">
+        <div class="library-header">
+          <h1>Game Library <span class="library-count" id="library-count"></span></h1>
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="steam">Steam</button>
+            <button class="filter-btn" data-filter="xbox">Xbox</button>
+            <button class="filter-btn" data-filter="epic">Epic</button>
+            <button class="filter-btn" data-filter="local">Local</button>
+          </div>
+        </div>
+        <div class="game-grid" id="library-grid"></div>
+      </div>
+
+      <div class="view" id="view-steam">
+        <div class="store-header"><span class="store-icon store-color-steam">🟦</span><h1>Steam</h1></div>
+        <p class="store-desc">Browse your Steam games, discover new titles, and launch your favorite games directly from GameVault. Steam offers thousands of games across every genre imaginable, from indie gems to AAA blockbusters.</p>
+        <div class="store-actions"><button class="btn-primary" data-store="steam">Open Store ↗</button><button class="btn-secondary store-view-lib">View Library</button></div>
+        <div class="game-grid" id="steam-grid"></div>
+      </div>
+
+      <div class="view" id="view-xbox">
+        <div class="store-header"><span class="store-icon store-color-xbox">🟩</span><h1>Xbox Game Pass</h1></div>
+        <p class="store-desc">Access your Xbox Game Pass library, play on PC or console, and enjoy the latest titles from Xbox Game Studios and hundreds of partner titles across every genre.</p>
+        <div class="store-actions"><button class="btn-primary" data-store="xbox">Open Store ↗</button><button class="btn-secondary store-view-lib">View Library</button></div>
+        <div class="game-grid" id="xbox-grid"></div>
+      </div>
+
+      <div class="view" id="view-epic">
+        <div class="store-header"><span class="store-icon store-color-epic">🟪</span><h1>Epic Games Store</h1></div>
+        <p class="store-desc">Your Epic Games library at your fingertips. Claim free games every week and launch your entire collection from one unified interface. Featuring exclusive titles and great deals.</p>
+        <div class="store-actions"><button class="btn-primary" data-store="epic">Open Store ↗</button><button class="btn-secondary store-view-lib">View Library</button></div>
+        <div class="game-grid" id="epic-grid"></div>
+      </div>
+
+      <div class="view" id="view-settings">
+        <h1 style="font-size:24px;font-weight:700;margin-bottom:24px;letter-spacing:-.3px">Settings</h1>
+        <div class="settings-section">
+          <h2>🖥️ Display</h2>
+          <div class="setting-row"><label>Fullscreen Mode</label><button class="toggle-switch" id="fs-toggle-setting" title="Enter fullscreen gaming mode"></button></div>
+          <div class="setting-row">
+            <label>Theme</label>
+            <select id="theme-select">
+              <option value="dark" selected>Dark</option>
+              <option value="darker">Darker</option>
+              <option value="midnight">Midnight</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h2>📚 Library</h2>
+          <div class="setting-row"><label>Show installed only</label><button class="toggle-switch" id="installed-toggle" title="Filter library to show only installed games"></button></div>
+        </div>
+        <div class="settings-section">
+          <h2>🎮 Game Mode</h2>
+          <div class="setting-row">
+            <label>Launch Fullscreen Game Mode — immersive Big Picture style interface</label>
+            <button class="btn-action" id="launch-game-mode">Launch</button>
+          </div>
+        </div>
+        <div class="settings-section" id="linux-section" style="display:none">
+          <h2>🐧 Linux Integration</h2>
+          <div class="about-info">
+            <strong>Linux Gaming Support</strong><br>
+            <span style="font-size:12px;color:var(--text2)">
+              • Steam (native / Proton / Flatpak) — auto-detected<br>
+              • Heroic Games Launcher — Epic & GOG games<br>
+              • Lutris — unified game manager<br>
+              • Bottles — Windows app runner<br>
+              • Native Linux games in standard paths<br><br>
+              Fullscreen mode works with any modern browser (Firefox, Chrome, Edge).<br>
+              Keyboard shortcuts: <strong>F11</strong> toggle fullscreen · <strong>Esc</strong> exit
+            </span>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h2>ℹ️ About</h2>
+          <div class="about-info">
+            <strong>GameVault</strong> v1.0.0<br>
+            Built with ❤️ for gamers<br>
+            <span id="platform-info">Platform: Detecting...</span><br>
+            © 2026 GameVault — All rights reserved<br><br>
+            <span style="font-size:11px;color:var(--text3)">GameVault is a unified gaming launcher interface inspired by Steam Big Picture and console UI design. Fully self-contained with no external dependencies. All game artwork generated as SVG data URIs. <strong>Works on Windows, macOS, and Linux.</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="modal">
+    <div class="modal-banner" id="modal-banner">
+      <div class="gradient-overlay"></div>
+      <h2 id="modal-title"></h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tags" id="modal-tags"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-meta" id="modal-meta"></div>
+      <div class="modal-actions">
+        <button class="btn-play" id="modal-play-btn">▶ Play</button>
+        <button class="btn-store" id="modal-store-btn">Open Store ↗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="fullscreen">
+  <div id="fs-topbar">
+    <div class="fs-logo"><span>GV</span> GameVault</div>
+    <div id="fs-nav">
+      <button class="active" data-fs="home"><span class="fs-nav-icon">🏠</span>Home</button>
+      <button data-fs="library"><span class="fs-nav-icon">🎮</span>Library</button>
+      <button data-fs="steam"><span class="fs-nav-icon">🟦</span>Steam</button>
+      <button data-fs="xbox"><span class="fs-nav-icon">🟩</span>Xbox</button>
+      <button data-fs="epic"><span class="fs-nav-icon">🟪</span>Epic</button>
+    </div>
+    <div id="fs-clock"></div>
+    <button id="fs-exit">✕ Exit</button>
+  </div>
+  <div id="fs-content">
+    <div id="fs-hero">
+      <div id="fs-hero-bg"></div>
+      <div class="hero-content">
+        <div class="hero-cover" id="fs-hero-cover"><span class="initials" id="fs-hero-initials"></span></div>
+        <div class="hero-info">
+          <h1 id="fs-hero-title"></h1>
+          <div class="hero-badge" id="fs-hero-badge"></div>
+          <div class="hero-dev" id="fs-hero-dev"></div>
+          <div class="hero-desc" id="fs-hero-desc"></div>
+          <div class="hero-actions">
+            <button class="btn-play" id="fs-play-btn">▶ Play</button>
+            <button class="btn-info" id="fs-info-btn">More Info</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="fs-shelves">
+      <div>
+        <div class="fs-shelf-header"><h2>Continue Playing</h2></div>
+        <div class="fs-shelf" id="fs-continue"></div>
+      </div>
+      <hr class="fs-section-divider">
+      <div>
+        <div class="fs-shelf-header"><h2>Stores</h2></div>
+        <div class="fs-store-cards">
+          <div class="fs-store-card" data-view="steam">
+            <div class="fs-store-icon">🟦</div>
+            <h3>Steam</h3>
+            <p>Browse and launch your Steam library</p>
+            <div class="games-count" id="fs-steam-count"></div>
+          </div>
+          <div class="fs-store-card" data-view="xbox">
+            <div class="fs-store-icon">🟩</div>
+            <h3>Xbox Game Pass</h3>
+            <p>Xbox games available on PC</p>
+            <div class="games-count" id="fs-xbox-count"></div>
+          </div>
+          <div class="fs-store-card" data-view="epic">
+            <div class="fs-store-icon">🟪</div>
+            <h3>Epic Games</h3>
+            <p>Epic Games Store library</p>
+            <div class="games-count" id="fs-epic-count"></div>
+          </div>
+        </div>
+      </div>
+      <hr class="fs-section-divider">
+      <div>
+        <div class="fs-shelf-header"><h2>Installed Games</h2><a id="fs-view-all-lib">View All</a></div>
+        <div class="fs-shelf" id="fs-installed"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var games=[
+  {id:1,name:'Counter-Strike 2',platform:'steam',installed:true,developer:'Valve',publisher:'Valve',desc:'The next era of Counter-Strike. Experience the evolution of the world\'s premier competitive shooter with stunning visuals and upgraded mechanics.',color:'#ff6b35',genre:'FPS, Competitive',released:'2023',initials:'CS'},
+  {id:2,name:'Dota 2',platform:'steam',installed:true,developer:'Valve',publisher:'Valve',desc:'The most popular multiplayer battle arena game. Choose from over 120 heroes and battle in epic 5v5 matches with strategic depth.',color:'#e74c3c',genre:'MOBA, Strategy',released:'2013',initials:'D2'},
+  {id:3,name:'ELDEN RING',platform:'steam',installed:false,developer:'FromSoftware',publisher:'Bandai Namco',desc:'The critically acclaimed action RPG set in a vast world of breathtaking vistas, dark dungeons, and fearsome enemies.',color:'#f1c40f',genre:'Action RPG, Open World',released:'2022',initials:'ER'},
+  {id:4,name:"Baldur's Gate 3",platform:'steam',installed:true,developer:'Larian Studios',publisher:'Larian Studios',desc:'An epic RPG based on Dungeons & Dragons. Forge your path in a world of deep storytelling and tactical turn-based combat.',color:'#2ecc71',genre:'RPG, Turn-Based, Fantasy',released:'2023',initials:'BG'},
+  {id:5,name:'Forza Horizon 5',platform:'xbox',installed:true,developer:'Playground Games',publisher:'Xbox Game Studios',desc:'Explore the vibrant open landscapes of Mexico in the ultimate automotive adventure with hundreds of cars.',color:'#9bf00b',genre:'Racing, Open World',released:'2021',initials:'FH'},
+  {id:6,name:'Halo Infinite',platform:'xbox',installed:false,developer:'343 Industries',publisher:'Xbox Game Studios',desc:'The legendary Halo series continues with the most ambitious Master Chief story yet and free-to-play multiplayer.',color:'#3498db',genre:'FPS, Sci-Fi',released:'2021',initials:'HI'},
+  {id:7,name:'Starfield',platform:'xbox',installed:false,developer:'Bethesda Game Studios',publisher:'Bethesda Softworks',desc:'Explore the vastness of space in Bethesda\'s epic RPG. Build ships, discover planets, and forge your own destiny.',color:'#8e44ad',genre:'RPG, Sci-Fi, Open World',released:'2023',initials:'SF'},
+  {id:8,name:'Fortnite',platform:'epic',installed:true,developer:'Epic Games',publisher:'Epic Games',desc:'The free-to-play battle royale phenomenon. Build, fight, and be the last one standing with constant updates.',color:'#4a9eff',genre:'Battle Royale, Building',released:'2017',initials:'FN'},
+  {id:9,name:'Rocket League',platform:'epic',installed:true,developer:'Psyonix',publisher:'Epic Games',desc:'Soccer meets driving in this fast-paced multiplayer sports game with rocket-powered vehicles.',color:'#e67e22',genre:'Sports, Racing, Arcade',released:'2015',initials:'RL'},
+  {id:10,name:'Alan Wake 2',platform:'epic',installed:false,developer:'Remedy Entertainment',publisher:'Epic Games',desc:'The long-awaited survival horror sequel. A psychological thriller blending intense action with a gripping narrative.',color:'#1a1a2e',genre:'Survival Horror, Thriller',released:'2023',initials:'AW'},
+  {id:11,name:'Cyberpunk 2077',platform:'local',installed:true,developer:'CD Projekt Red',publisher:'CD Projekt',desc:'An open-world action RPG set in the dark future of Night City. Upgrade your body and rewrite your destiny.',color:'#ff007f',genre:'Action RPG, Open World, Sci-Fi',released:'2020',initials:'CP'},
+  {id:12,name:'The Witcher 3: Wild Hunt',platform:'local',installed:true,developer:'CD Projekt Red',publisher:'CD Projekt',desc:'Become the legendary monster hunter Geralt of Rivia. Explore a vast fantasy world in this award-winning RPG.',color:'#7f8c8d',genre:'RPG, Fantasy, Open World',released:'2015',initials:'TW'}
+];
+
+function makeSvg(name,color,initials){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225">'+
+    '<defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">'+
+    '<stop offset="0%" style="stop-color:'+color+';stop-opacity:1"/>'+
+    '<stop offset="100%" style="stop-color:'+color+';stop-opacity:.6"/>'+
+    '</linearGradient></defs>'+
+    '<rect width="400" height="225" fill="url(#g)"/>'+
+    '<rect width="400" height="225" fill="rgba(0,0,0,.06)"/>'+
+    '<circle cx="340" cy="40" r="80" fill="rgba(255,255,255,.04)"/>'+
+    '<text x="200" y="120" text-anchor="middle" dominant-baseline="middle" font-family="system-ui,sans-serif" font-size="64" font-weight="700" fill="rgba(0,0,0,.18)">'+initials+'</text>'+
+    '<rect x="0" y="200" width="400" height="25" fill="rgba(0,0,0,.1)"/>'+
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+function coverStyle(game){
+  return 'background-image:url("'+makeSvg(game.name,game.color,game.initials)+'");background-size:cover;background-position:center;background-color:'+game.color;
+}
+
+var state={view:'library',search:'',filter:'all',fullscreen:false,selectedGame:null,fsGame:null,fsView:'home',installedOnly:false};
+
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return document.querySelectorAll(s)};
+
+var sidebarNav=$$('.nav-item');
+var viewEls=$$('.view');
+var titleEl=$('#view-title');
+var searchInput=$('#search-input');
+var searchClear=$('#search-clear');
+var libraryGrid=$('#library-grid');
+var libraryCount=$('#library-count');
+var overlay=$('#overlay');
+var fullscreenEl=$('#fullscreen');
+
+function cardHtml(g){
+  var pi=g.installed?'<span class="installed-badge">Installed</span>':'';
+  var nc=g.installed?'':' not-installed';
+  var ov=g.installed?'<div class="game-overlay-icon">▶</div>':'<div class="game-overlay-icon">+</div>';
+  return '<div class="game-card'+nc+'" data-id="'+g.id+'">'+ov+'<div class="game-cover" style="'+coverStyle(g)+'"><span class="initials">'+g.initials+'</span></div><div class="game-info"><div class="game-name">'+g.name+'</div><div class="game-meta"><span class="platform-badge '+g.platform+'">'+g.platform+'</span>'+pi+'</div></div></div>';
+}
+
+function renderLibrary(){
+  var filtered=games.slice();
+  if(state.filter!=='all')filtered=filtered.filter(function(g){return g.platform===state.filter});
+  if(state.search){
+    var q=state.search.toLowerCase();
+    filtered=filtered.filter(function(g){return g.name.toLowerCase().includes(q)});
+  }
+  if(state.installedOnly)filtered=filtered.filter(function(g){return g.installed});
+  libraryCount.textContent='('+filtered.length+' game'+(filtered.length!==1?'s':'')+')';
+  if(!filtered.length){
+    libraryGrid.innerHTML='<div class="placeholder-msg"><span class="big-icon">📦</span><p>No games found</p><span class="sub">Try adjusting your filters or search term</span></div>';
+    return;
+  }
+  libraryGrid.innerHTML=filtered.map(function(g){return cardHtml(g)}).join('');
+}
+
+function renderStore(platform){
+  var grid=$(('#'+platform+'-grid'));
+  var filtered=games.filter(function(g){return g.platform===platform});
+  if(!filtered.length){
+    grid.innerHTML='<div class="placeholder-msg"><span class="big-icon">📦</span><p>No '+platform+' games in your library</p><span class="sub">Games from this store will appear here once added</span></div>';
+    return;
+  }
+  grid.innerHTML=filtered.map(function(g){return cardHtml(g)}).join('');
+}
+
+function switchView(view){
+  state.view=view;
+  sidebarNav.forEach(function(n){n.classList.toggle('active',n.dataset.view===view)});
+  viewEls.forEach(function(v){v.classList.toggle('active',v.id==='view-'+view)});
+  var names={library:'Game Library',steam:'Steam',xbox:'Xbox Game Pass',epic:'Epic Games',settings:'Settings'};
+  titleEl.textContent=names[view]||'GameVault';
+  if(view==='library'){renderLibrary();}
+  if(view==='steam'){renderStore('steam');}
+  if(view==='xbox'){renderStore('xbox');}
+  if(view==='epic'){renderStore('epic');}
+  if(view==='settings'){}
+}
+
+sidebarNav.forEach(function(btn){btn.addEventListener('click',function(){
+  switchView(btn.dataset.view);
+  if(window.innerWidth<=768){$('#sidebar').classList.remove('open');}
+})});
+
+$$('.store-view-lib').forEach(function(b){b.addEventListener('click',function(){switchView('library')})});
+
+$$('[data-store]').forEach(function(b){b.addEventListener('click',function(){
+  var store=b.dataset.store;
+  var urls={steam:'https://store.steampowered.com',xbox:'https://www.xbox.com/en-US/games',epic:'https://store.epicgames.com/en-US'};
+  var url=urls[store]||'https://store.steampowered.com';
+
+  // Linux: try xdg-open first (opens Steam native app if installed via steam://)
+  if(navigator.userAgent.indexOf('Linux')!==-1||navigator.userAgent.indexOf('X11')!==-1){
+    if(store==='steam'){
+      var steamUrl='steam://store';
+      window.open(steamUrl,'_blank');
+      // Fallback to browser after 500ms
+      setTimeout(function(){window.open(url,'_blank')},500);
+      return;
+    }
+    // Epic on Linux: open via Heroic or web
+    if(store==='epic'){
+      alert('Opening Epic Games Store in browser...\n\nFor native Epic games on Linux, use Heroic Games Launcher.');
+    }
+  }
+  window.open(url,'_blank');
+})});
+
+searchInput.addEventListener('input',function(){
+  state.search=searchInput.value;
+  searchClear.classList.toggle('show',searchInput.value.length>0);
+  renderLibrary();
+});
+
+searchClear.addEventListener('click',function(){
+  searchInput.value='';
+  state.search='';
+  searchClear.classList.remove('show');
+  renderLibrary();
+  searchInput.focus();
+});
+
+$$('.filter-btn').forEach(function(btn){btn.addEventListener('click',function(){
+  $$('.filter-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  state.filter=btn.dataset.filter;
+  renderLibrary();
+})});
+
+$('#fs-toggle-setting').addEventListener('click',function(){enterFullscreen()});
+$('#launch-game-mode').addEventListener('click',enterFullscreen);
+
+$('#installed-toggle').addEventListener('click',function(){
+  this.classList.toggle('active');
+  state.installedOnly=this.classList.contains('active');
+  renderLibrary();
+});
+
+$('#theme-select').addEventListener('change',function(){
+  var v=this.value;
+  if(v==='dark'){document.documentElement.style.setProperty('--bg','#0a0a0a');document.documentElement.style.setProperty('--bg2','#121212');document.documentElement.style.setProperty('--card','#161616');document.documentElement.style.setProperty('--border','#2a2a2a');}
+  else if(v==='darker'){document.documentElement.style.setProperty('--bg','#000');document.documentElement.style.setProperty('--bg2','#080808');document.documentElement.style.setProperty('--card','#0d0d0d');document.documentElement.style.setProperty('--border','#1a1a1a');}
+  else if(v==='midnight'){document.documentElement.style.setProperty('--bg','#05080f');document.documentElement.style.setProperty('--bg2','#080c1a');document.documentElement.style.setProperty('--card','#0c1220');document.documentElement.style.setProperty('--border','#1a2240');}
+});
+
+$('#fullscreen-btn').addEventListener('click',enterFullscreen);
+$('#fs-exit').addEventListener('click',exitFullscreen);
+
+$('#mobile-menu-btn').addEventListener('click',function(){
+  $('#sidebar').classList.toggle('open');
+});
+
+$('#sidebar-overlay').addEventListener('click',function(){
+  $('#sidebar').classList.remove('open');
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(overlay.classList.contains('open')){overlay.classList.remove('open');e.preventDefault();return;}
+    if(state.fullscreen){exitFullscreen();e.preventDefault();return;}
+  }
+  if(e.key==='F11'){e.preventDefault();state.fullscreen?exitFullscreen():enterFullscreen();}
+  if(e.key==='Enter'&&state.fullscreen&&state.fsGame){
+    if(state.fsGame.installed)alert('Launching '+state.fsGame.name+'...');
+    else alert('Installing '+state.fsGame.name+'...');
+  }
+  if(e.key===' '&&overlay.classList.contains('open')){
+    e.preventDefault();
+    var g=state.selectedGame;
+    if(g){if(g.installed)alert('Launching '+g.name+'...');else alert('Installing '+g.name+'...');overlay.classList.remove('open');}
+  }
+});
+
+$('#fs-view-all-lib').addEventListener('click',function(){exitFullscreen();switchView('library')});
+
+var fsClockInterval=null;
+
+function enterFullscreen(){
+  if(state.fullscreen)return;
+  state.fullscreen=true;
+  fullscreenEl.classList.add('open');
+  document.body.classList.add('fs');
+  var installed=games.filter(function(g){return g.installed});
+  state.fsGame=installed[0]||games[0];
+  renderFSHero();
+  renderFSShelves();
+  updateClock();
+  if(!fsClockInterval)fsClockInterval=setInterval(updateClock,1000);
+}
+
+function exitFullscreen(){
+  if(!state.fullscreen)return;
+  state.fullscreen=false;
+  fullscreenEl.classList.remove('open');
+  document.body.classList.remove('fs');
+  if(fsClockInterval){clearInterval(fsClockInterval);fsClockInterval=null;}
+}
+
+function updateClock(){
+  var now=new Date();
+  var h=String(now.getHours()).padStart(2,'0');
+  var m=String(now.getMinutes()).padStart(2,'0');
+  var s=String(now.getSeconds()).padStart(2,'0');
+  $('#fs-clock').textContent=h+':'+m+':'+s;
+}
+
+function renderFSHero(){
+  var g=state.fsGame;
+  if(!g)return;
+  var svg=makeSvg(g.name,g.color,g.initials);
+  $('#fs-hero-bg').style.backgroundImage='url("'+svg+'")';
+  $('#fs-hero-cover').style.cssText=coverStyle(g)+';width:180px;height:240px;border-radius:14px;';
+  $('#fs-hero-initials').textContent=g.initials;
+  $('#fs-hero-title').textContent=g.name;
+  var badge=$('#fs-hero-badge');
+  badge.textContent=g.platform.charAt(0).toUpperCase()+g.platform.slice(1);
+  var pc={steam:'var(--steam)',xbox:'var(--xbox)',epic:'var(--epic)',local:'var(--text2)'};
+  var bc={steam:'rgba(102,192,244,.2)',xbox:'rgba(155,240,11,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
+  badge.style.background=bc[g.platform]||bc.local;
+  badge.style.color=pc[g.platform]||pc.local;
+  $('#fs-hero-dev').textContent=g.developer;
+  $('#fs-hero-desc').textContent=g.desc;
+  $('#fs-play-btn').innerHTML=g.installed?'▶ Play':'Install';
+}
+
+function badgeStyles(g){
+  var pc={steam:'var(--steam)',xbox:'var(--xbox)',epic:'var(--epic)',local:'var(--text2)'};
+  var bc={steam:'rgba(102,192,244,.2)',xbox:'rgba(155,240,11,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
+  return 'background:'+(bc[g.platform]||bc.local)+';color:'+(pc[g.platform]||pc.local);
+}
+
+function renderFSShelves(){
+  var installed=games.filter(function(g){return g.installed});
+  var all=games;
+  $('#fs-continue').innerHTML=installed.map(function(g){
+    return '<div class="fs-shelf-card" data-id="'+g.id+'"><div class="shelf-cover" style="'+coverStyle(g)+'"><span class="initials">'+g.initials+'</span></div><div class="shelf-info"><div class="shelf-name">'+g.name+'</div><span class="shelf-badge" style="'+badgeStyles(g)+'">'+g.platform+'</span></div></div>';
+  }).join('');
+  $('#fs-installed').innerHTML=all.map(function(g){
+    var nc=g.installed?'':' not-installed';
+    return '<div class="fs-shelf-card'+nc+'" data-id="'+g.id+'"><div class="shelf-cover" style="'+coverStyle(g)+'"><span class="initials">'+g.initials+'</span></div><div class="shelf-info"><div class="shelf-name">'+g.name+'</div><span class="shelf-badge" style="'+badgeStyles(g)+'">'+g.platform+'</span></div></div>';
+  }).join('');
+  $('#fs-steam-count').textContent=games.filter(function(g){return g.platform==='steam'}).length+' games';
+  $('#fs-xbox-count').textContent=games.filter(function(g){return g.platform==='xbox'}).length+' games';
+  $('#fs-epic-count').textContent=games.filter(function(g){return g.platform==='epic'}).length+' games';
+}
+
+$$('#fs-nav button').forEach(function(btn){btn.addEventListener('click',function(){
+  $$('#fs-nav button').forEach(function(b){b.classList.remove('active')});
+  this.classList.add('active');
+  if(this.dataset.fs==='home')return;
+  exitFullscreen();
+  switchView(this.dataset.fs);
+})});
+
+$$('.fs-store-card').forEach(function(card){card.addEventListener('click',function(){
+  exitFullscreen();
+  switchView(this.dataset.view);
+})});
+
+document.addEventListener('click',function(e){
+  var card=e.target.closest('.game-card');
+  if(card&&card.dataset.id&&!e.target.closest('#fullscreen')){
+    var id=parseInt(card.dataset.id);
+    var game=games.find(function(g){return g.id===id});
+    if(game)showModal(game);
+  }
+});
+
+$('#fs-continue').addEventListener('click',function(e){
+  var card=e.target.closest('.fs-shelf-card');
+  if(!card||!card.dataset.id)return;
+  var id=parseInt(card.dataset.id);
+  var game=games.find(function(g){return g.id===id});
+  if(game){state.fsGame=game;renderFSHero();}
+});
+
+$('#fs-installed').addEventListener('click',function(e){
+  var card=e.target.closest('.fs-shelf-card');
+  if(!card||!card.dataset.id)return;
+  var id=parseInt(card.dataset.id);
+  var game=games.find(function(g){return g.id===id});
+  if(game){state.fsGame=game;renderFSHero();}
+});
+
+$('#fs-info-btn').addEventListener('click',function(){
+  if(state.fsGame)showModal(state.fsGame);
+});
+
+$('#fs-play-btn').addEventListener('click',function(){
+  if(!state.fsGame)return;
+  if(state.fsGame.installed)alert('Launching '+state.fsGame.name+'...');
+  else alert('Installing '+state.fsGame.name+'...');
+});
+
+function showModal(game){
+  state.selectedGame=game;
+  var banner=$('#modal-banner');
+  banner.style.cssText=coverStyle(game)+';height:200px;';
+  $('#modal-title').textContent=game.name;
+  $('#modal-tags').innerHTML=game.genre.split(', ').map(function(g){return '<span>'+g+'</span>'}).join('');
+  $('#modal-desc').textContent=game.desc;
+  $('#modal-meta').innerHTML=
+    '<div class="meta-item"><div class="label">Platform</div><div class="value" style="text-transform:capitalize">'+game.platform+'</div></div>'+
+    '<div class="meta-item"><div class="label">Released</div><div class="value">'+game.released+'</div></div>'+
+    '<div class="meta-item"><div class="label">Status</div><div class="value">'+(game.installed?'Installed':'Not Installed')+'</div></div>'+
+    '<div class="meta-item"><div class="label">Developer</div><div class="value">'+game.developer+'</div></div>';
+  $('#modal-play-btn').innerHTML=game.installed?'▶ Play':'Install';
+  overlay.classList.add('open');
+}
+
+$('#modal-close').addEventListener('click',function(){overlay.classList.remove('open')});
+overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open')});
+$('#modal-play-btn').addEventListener('click',function(){
+  var g=state.selectedGame;
+  if(!g)return;
+  if(g.installed)alert('Launching '+g.name+'...');
+  else alert('Installing '+g.name+'...');
+  overlay.classList.remove('open');
+});
+$('#modal-store-btn').addEventListener('click',function(){
+  if(state.selectedGame)alert('Opening store page for '+state.selectedGame.name+'...');
+  overlay.classList.remove('open');
+});
+
+// --- Linux / Platform detection ---
+(function detectPlatform(){
+  var ua=navigator.userAgent||'';
+  var platformName='Unknown';
+  if(ua.indexOf('Linux')!==-1||ua.indexOf('X11')!==-1)platformName='🐧 Linux';
+  else if(ua.indexOf('Windows')!==-1)platformName='🪟 Windows';
+  else if(ua.indexOf('Mac')!==-1)platformName='🍎 macOS';
+  else platformName='🖥️ Unknown OS';
+  var infoEl=document.getElementById('platform-info');
+  if(infoEl)infoEl.textContent='Platform: '+platformName;
+
+  // Linux: show compatibility badge and linux settings section
+  if(platformName.indexOf('Linux')!==-1){
+    var badge=document.createElement('span');
+    badge.style.cssText='font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(74,158,255,.15);color:var(--accent);font-weight:600;margin-left:8px;vertical-align:middle;user-select:none';
+    badge.textContent='🐧 Linux';
+    var viewTitle=document.getElementById('view-title');
+    if(viewTitle)viewTitle.appendChild(badge);
+    // Show Linux-specific settings section
+    var linuxSection=document.getElementById('linux-section');
+    if(linuxSection)linuxSection.style.display='';
+  }
+})();
+
+renderLibrary();
+updateClock();
+fsClockInterval=setInterval(updateClock,1000);
+</script>
+</body>
+</html>

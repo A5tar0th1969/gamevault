@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=GameVault
+GenericName=Game Launcher
+Comment=Unified gaming launcher — Steam, Xbox Game Pass & Epic Games Store with fullscreen mode
+Exec=/opt/gamevault/start.sh
+Icon=gamevault
+Terminal=false
+Type=Application
+Categories=Game;
+Keywords=steam;xbox;epic;gaming;launcher;playnite;steamos;
+StartupNotify=true
+StartupWMClass=GameVault
+MimeType=x-scheme-handler/steam;x-scheme-handler/epic;
