@@ -1,7 +1,7 @@
 {
   "name": "gamevault",
   "version": "1.0.0",
-  "description": "Cross-platform Gaming UI Launcher — Steam, Xbox Game Pass & Epic Games Store integration with fullscreen Aniki UI mode",
+  "description": "Cross-platform Gaming UI Launcher — Steam & Epic Games Store integration with fullscreen Aniki UI mode",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -50,7 +50,7 @@
       "category": "Game",
       "icon": "public/icon.png",
       "synopsis": "Unified gaming launcher",
-      "description": "A cross-platform gaming UI launcher inspired by Playnite and Steam Big Picture. Integrates Steam, Xbox Game Pass, and Epic Games Store with fullscreen game mode.",
+      "description": "A cross-platform gaming UI launcher inspired by Playnite and Steam Big Picture. Integrates Steam and Epic Games Store with fullscreen game mode.",
       "executableArgs": [],
       "publish": null
     },

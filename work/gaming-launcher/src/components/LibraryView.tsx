@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react'
 import { useUIStore } from '../store/uiStore'
 import { useGameStore } from '../store/gameStore'
 import GameCard from './GameCard'
-import type { ViewSection } from '../types/game'
 import './LibraryView.css'
 
-type FilterType = 'all' | 'steam' | 'xbox' | 'epic' | 'local'
+type FilterType = 'all' | 'steam' | 'epic' | 'local'
 
 export default function LibraryView() {
   const { searchQuery, selectGame, setShowGameDetails } = useUIStore()
@@ -42,7 +41,6 @@ export default function LibraryView() {
   const filters: { label: string; value: FilterType }[] = [
     { label: 'All', value: 'all' },
     { label: 'Steam', value: 'steam' },
-    { label: 'Xbox', value: 'xbox' },
     { label: 'Epic', value: 'epic' },
     { label: 'Local', value: 'local' },
   ]

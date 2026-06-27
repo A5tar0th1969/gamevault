@@ -38,7 +38,6 @@ export default function GameCard({ game, onClick }: GameCardProps) {
         <div className="game-card-meta">
           <span className={`game-card-platform ${game.platform}`}>
             {game.platform === 'steam' ? 'Steam' :
-             game.platform === 'xbox' ? 'Xbox' :
              game.platform === 'epic' ? 'Epic' : 'Local'}
           </span>
           <span className={`game-card-installed ${game.isInstalled ? 'indicator' : ''}`}>

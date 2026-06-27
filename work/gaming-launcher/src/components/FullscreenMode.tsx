@@ -9,7 +9,7 @@ interface FullscreenModeProps {
   onExitFullscreen: () => void
 }
 
-type FsSection = 'home' | 'library' | 'steam' | 'xbox' | 'epic'
+type FsSection = 'home' | 'library' | 'steam' | 'epic'
 
 export default function FullscreenMode({ games, onExitFullscreen }: FullscreenModeProps) {
   const [activeSection, setActiveSection] = useState<FsSection>('home')
@@ -29,7 +29,6 @@ export default function FullscreenMode({ games, onExitFullscreen }: FullscreenMo
   }, [games, activeGameId, featuredGame])
 
   const steamGames = games.filter(g => g.platform === 'steam')
-  const xboxGames = games.filter(g => g.platform === 'xbox')
   const epicGames = games.filter(g => g.platform === 'epic')
   const installedGames = games.filter(g => g.isInstalled)
 
@@ -54,7 +53,6 @@ export default function FullscreenMode({ games, onExitFullscreen }: FullscreenMo
     { id: 'home', label: 'Home', icon: '⌂' },
     { id: 'library', label: 'Library', icon: '🎮' },
     { id: 'steam', label: 'Steam', icon: '🟦' },
-    { id: 'xbox', label: 'Xbox', icon: '🟩' },
     { id: 'epic', label: 'Epic', icon: '🟪' },
   ]
 
@@ -66,8 +64,6 @@ export default function FullscreenMode({ games, onExitFullscreen }: FullscreenMo
         return renderGameShelf('My Library', games)
       case 'steam':
         return renderGameShelf('Steam Games', steamGames, 'steam-active')
-      case 'xbox':
-        return renderGameShelf('Xbox Game Pass', xboxGames, 'xbox-active')
       case 'epic':
         return renderGameShelf('Epic Games', epicGames, 'epic-active')
     }
@@ -100,11 +96,6 @@ export default function FullscreenMode({ games, onExitFullscreen }: FullscreenMo
             <div className="fullscreen-store-card-icon">🟦</div>
             <div className="fullscreen-store-card-name">Steam</div>
             <div className="fullscreen-store-card-count">{steamGames.length} games</div>
-          </div>
-          <div className="fullscreen-store-card xbox" onClick={() => setActiveSection('xbox')}>
-            <div className="fullscreen-store-card-icon">🟩</div>
-            <div className="fullscreen-store-card-name">Xbox Game Pass</div>
-            <div className="fullscreen-store-card-count">{xboxGames.length} games</div>
           </div>
           <div className="fullscreen-store-card epic" onClick={() => setActiveSection('epic')}>
             <div className="fullscreen-store-card-icon">🟪</div>
@@ -208,7 +199,6 @@ export default function FullscreenMode({ games, onExitFullscreen }: FullscreenMo
               <div className="fullscreen-hero-meta">
                 <span className={`fullscreen-hero-platform ${activeGame.platform}`}>
                   {activeGame.platform === 'steam' ? 'Steam' :
-                   activeGame.platform === 'xbox' ? 'Xbox Game Pass' :
                    activeGame.platform === 'epic' ? 'Epic Games' : 'Local'}
                 </span>
                 {activeGame.developer && (

@@ -95,15 +95,6 @@
   color: var(--steam-blue);
 }
 
-.nav-item.xbox-active.active {
-  background: rgba(155, 240, 11, 0.1);
-  color: var(--xbox-green);
-}
-
-.nav-item.xbox-active.active .nav-icon {
-  color: var(--xbox-green);
-}
-
 .nav-item.epic-active.active {
   background: rgba(155, 89, 182, 0.1);
   color: var(--epic-purple);

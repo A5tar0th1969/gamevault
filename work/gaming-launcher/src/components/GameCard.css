@@ -105,11 +105,6 @@
   color: var(--steam-blue);
 }
 
-.game-card-platform.xbox {
-  background: rgba(155, 240, 11, 0.15);
-  color: var(--xbox-green);
-}
-
 .game-card-platform.epic {
   background: rgba(155, 89, 182, 0.15);
   color: var(--epic-purple);

@@ -2,17 +2,16 @@ import { useMemo } from 'react'
 import { useUIStore } from '../store/uiStore'
 import { useGameStore } from '../store/gameStore'
 import { PLATFORM_STORES } from '../services/storeIntegration'
-import type { ViewSection, Game } from '../types/game'
+import type { Game } from '../types/game'
 import GameCard from './GameCard'
 import './StoreView.css'
 
 interface StoreViewProps {
-  platform: 'steam' | 'xbox' | 'epic'
+  platform: 'steam' | 'epic'
 }
 
 const storeUrls: Record<string, string> = {
   steam: 'https://store.steampowered.com',
-  xbox: 'https://www.xbox.com/en-US/games',
   epic: 'https://store.epicgames.com/en-US',
 }
 
@@ -35,7 +34,7 @@ export default function StoreView({ platform }: StoreViewProps) {
     <div className="store-view">
       <div className="store-header">
         <div className={`store-icon ${platform}`}>
-          {platform === 'steam' ? '🟦' : platform === 'xbox' ? '🟩' : '🟪'}
+            {platform === 'steam' ? '🟦' : '🟪'}
         </div>
         <h1 className="store-title">{storeInfo.name}</h1>
       </div>
@@ -68,7 +67,7 @@ export default function StoreView({ platform }: StoreViewProps) {
       ) : (
         <div className="store-placeholder">
           <div className="store-placeholder-icon">
-            {platform === 'steam' ? '🟦' : platform === 'xbox' ? '🟩' : '🟪'}
+          {platform === 'steam' ? '🟦' : '🟪'}
           </div>
           <div className="store-placeholder-text">No {storeInfo.name} games in your library</div>
           <div className="store-placeholder-sub">

@@ -16,14 +16,12 @@ export default function GameDetailsPanel({ game }: GameDetailsPanelProps) {
 
   const platformLabel = {
     steam: 'Steam',
-    xbox: 'Xbox Game Pass',
     epic: 'Epic Games',
     local: 'Local',
   }[game.platform]
 
   const storeUrls: Record<string, string> = {
     steam: 'https://store.steampowered.com',
-    xbox: 'https://www.xbox.com/en-US/games',
     epic: 'https://store.epicgames.com/en-US',
   }
 
@@ -97,7 +95,7 @@ export default function GameDetailsPanel({ game }: GameDetailsPanelProps) {
                   '_blank'
                 )}
               >
-                Open in {game.platform === 'steam' ? 'Steam' : game.platform === 'xbox' ? 'Xbox' : 'Epic'} ↗
+                Open in {game.platform === 'steam' ? 'Steam' : 'Epic'} ↗
               </button>
             )}
           </div>

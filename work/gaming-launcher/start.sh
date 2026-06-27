@@ -155,13 +155,13 @@ install_desktop() {
 [Desktop Entry]
 Name=GameVault
 GenericName=Game Launcher
-Comment=Unified gaming launcher with Steam, Xbox Game Pass & Epic Games Store
+Comment=Unified gaming launcher with Steam & Epic Games Store
 Exec=$APP_DIR/start.sh
 Icon=gamevault
 Terminal=false
 Type=Application
 Categories=Game;
-Keywords=steam;xbox;epic;gaming;launcher;
+Keywords=steam;epic;gaming;launcher;
 StartupNotify=true
 StartupWMClass=GameVault
 EOF

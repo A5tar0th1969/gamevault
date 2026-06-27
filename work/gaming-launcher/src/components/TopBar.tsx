@@ -8,7 +8,6 @@ interface TopBarProps {
 const viewTitles: Record<string, string> = {
   library: 'Library',
   steam: 'Steam Store',
-  xbox: 'Xbox Game Pass',
   epic: 'Epic Games Store',
   settings: 'Settings',
 }

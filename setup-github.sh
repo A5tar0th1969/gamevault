@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO_NAME="${1:-gamevault}"
-REPO_DESC="Cross-platform gaming launcher with Steam, Xbox Game Pass & Epic Games Store — Aniki ReMake UI, fullscreen game mode, Linux support"
+REPO_DESC="Cross-platform gaming launcher with Steam & Epic Games Store — Aniki ReMake UI, fullscreen game mode, Linux support"
 GITHUB_USER=""
 
 echo "🎮 GameVault — GitHub Repository Setup"

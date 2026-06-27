@@ -6,7 +6,7 @@
 <title>GameVault — Gaming Launcher</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a0a0a;--bg2:#121212;--card:#161616;--card-hover:#1e1e1e;--border:#2a2a2a;--text:#e0e0e0;--text2:#888;--text3:#555;--accent:#4a9eff;--steam:#66c0f4;--xbox:#9bf00b;--epic:#9b59b6;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,.5);--transition:.3s cubic-bezier(.4,0,.2,1)}
+:root{--bg:#0a0a0a;--bg2:#121212;--card:#161616;--card-hover:#1e1e1e;--border:#2a2a2a;--text:#e0e0e0;--text2:#888;--text3:#555;--accent:#4a9eff;--steam:#66c0f4;--epic:#9b59b6;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,.5);--transition:.3s cubic-bezier(.4,0,.2,1)}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow:hidden;line-height:1.4;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -97,7 +97,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .game-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .platform-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;user-select:none}
 .platform-badge.steam{background:rgba(102,192,244,.15);color:var(--steam)}
-.platform-badge.xbox{background:rgba(155,240,11,.15);color:var(--xbox)}
 .platform-badge.epic{background:rgba(155,89,182,.15);color:var(--epic)}
 .platform-badge.local{background:rgba(255,255,255,.08);color:var(--text2)}
 .installed-badge{font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(74,158,255,.12);color:var(--accent);font-weight:600;user-select:none}
@@ -114,7 +113,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .store-actions .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .store-actions .btn-secondary:hover{background:var(--card-hover);border-color:var(--text2);transform:translateY(-1px)}
 .store-color-steam{color:var(--steam)}
-.store-color-xbox{color:var(--xbox)}
 .store-color-epic{color:var(--epic)}
 
 .placeholder-msg{text-align:center;padding:60px 20px;color:var(--text2);animation:fadeIn .5s ease}
@@ -228,11 +226,10 @@ body.fs #app{overflow:hidden}
 .fs-shelf-card.not-installed{opacity:.55}
 .fs-shelf-card.not-installed:hover{opacity:.85}
 
-.fs-store-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;animation:slideUp .5s ease}
+.fs-store-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;animation:slideUp .5s ease}
 .fs-store-card{background:var(--card);border-radius:14px;padding:28px 24px;cursor:pointer;transition:all var(--transition);border:1px solid var(--border);text-align:center;position:relative;overflow:hidden}
 .fs-store-card::before{content:'';position:absolute;inset:0;opacity:0;transition:var(--transition);border-radius:14px}
 .fs-store-card[data-view="steam"]::before{background:radial-gradient(circle at 50% 0%,rgba(102,192,244,.08),transparent 70%)}
-.fs-store-card[data-view="xbox"]::before{background:radial-gradient(circle at 50% 0%,rgba(155,240,11,.08),transparent 70%)}
 .fs-store-card[data-view="epic"]::before{background:radial-gradient(circle at 50% 0%,rgba(155,89,182,.08),transparent 70%)}
 .fs-store-card:hover::before{opacity:1}
 .fs-store-card:hover{transform:translateY(-6px);box-shadow:0 12px 36px rgba(0,0,0,.5);border-color:rgba(255,255,255,.08)}
@@ -292,7 +289,6 @@ body.fs #app{overflow:hidden}
     <div class="logo"><span>GV</span> GameVault</div>
     <button class="nav-item active" data-view="library"><span class="icon">🎮</span> Library</button>
     <button class="nav-item" data-view="steam"><span class="icon">🟦</span> Steam</button>
-    <button class="nav-item" data-view="xbox"><span class="icon">🟩</span> Xbox Game Pass</button>
     <button class="nav-item" data-view="epic"><span class="icon">🟪</span> Epic Games</button>
     <div class="sidebar-divider"></div>
     <button class="nav-item" data-view="settings"><span class="icon">⚙️</span> Settings</button>
@@ -317,7 +313,6 @@ body.fs #app{overflow:hidden}
           <div class="filter-group">
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="steam">Steam</button>
-            <button class="filter-btn" data-filter="xbox">Xbox</button>
             <button class="filter-btn" data-filter="epic">Epic</button>
             <button class="filter-btn" data-filter="local">Local</button>
           </div>
@@ -330,13 +325,6 @@ body.fs #app{overflow:hidden}
         <p class="store-desc">Browse your Steam games, discover new titles, and launch your favorite games directly from GameVault. Steam offers thousands of games across every genre imaginable, from indie gems to AAA blockbusters.</p>
         <div class="store-actions"><button class="btn-primary" data-store="steam">Open Store ↗</button><button class="btn-secondary store-view-lib">View Library</button></div>
         <div class="game-grid" id="steam-grid"></div>
-      </div>
-
-      <div class="view" id="view-xbox">
-        <div class="store-header"><span class="store-icon store-color-xbox">🟩</span><h1>Xbox Game Pass</h1></div>
-        <p class="store-desc">Access your Xbox Game Pass library, play on PC or console, and enjoy the latest titles from Xbox Game Studios and hundreds of partner titles across every genre.</p>
-        <div class="store-actions"><button class="btn-primary" data-store="xbox">Open Store ↗</button><button class="btn-secondary store-view-lib">View Library</button></div>
-        <div class="game-grid" id="xbox-grid"></div>
       </div>
 
       <div class="view" id="view-epic">
@@ -427,7 +415,6 @@ body.fs #app{overflow:hidden}
       <button class="active" data-fs="home"><span class="fs-nav-icon">🏠</span>Home</button>
       <button data-fs="library"><span class="fs-nav-icon">🎮</span>Library</button>
       <button data-fs="steam"><span class="fs-nav-icon">🟦</span>Steam</button>
-      <button data-fs="xbox"><span class="fs-nav-icon">🟩</span>Xbox</button>
       <button data-fs="epic"><span class="fs-nav-icon">🟪</span>Epic</button>
     </div>
     <div id="fs-clock"></div>
@@ -465,12 +452,6 @@ body.fs #app{overflow:hidden}
             <p>Browse and launch your Steam library</p>
             <div class="games-count" id="fs-steam-count"></div>
           </div>
-          <div class="fs-store-card" data-view="xbox">
-            <div class="fs-store-icon">🟩</div>
-            <h3>Xbox Game Pass</h3>
-            <p>Xbox games available on PC</p>
-            <div class="games-count" id="fs-xbox-count"></div>
-          </div>
           <div class="fs-store-card" data-view="epic">
             <div class="fs-store-icon">🟪</div>
             <h3>Epic Games</h3>
@@ -494,10 +475,7 @@ var games=[
   {id:2,name:'Dota 2',platform:'steam',installed:true,developer:'Valve',publisher:'Valve',desc:'The most popular multiplayer battle arena game. Choose from over 120 heroes and battle in epic 5v5 matches with strategic depth.',color:'#e74c3c',genre:'MOBA, Strategy',released:'2013',initials:'D2'},
   {id:3,name:'ELDEN RING',platform:'steam',installed:false,developer:'FromSoftware',publisher:'Bandai Namco',desc:'The critically acclaimed action RPG set in a vast world of breathtaking vistas, dark dungeons, and fearsome enemies.',color:'#f1c40f',genre:'Action RPG, Open World',released:'2022',initials:'ER'},
   {id:4,name:"Baldur's Gate 3",platform:'steam',installed:true,developer:'Larian Studios',publisher:'Larian Studios',desc:'An epic RPG based on Dungeons & Dragons. Forge your path in a world of deep storytelling and tactical turn-based combat.',color:'#2ecc71',genre:'RPG, Turn-Based, Fantasy',released:'2023',initials:'BG'},
-  {id:5,name:'Forza Horizon 5',platform:'xbox',installed:true,developer:'Playground Games',publisher:'Xbox Game Studios',desc:'Explore the vibrant open landscapes of Mexico in the ultimate automotive adventure with hundreds of cars.',color:'#9bf00b',genre:'Racing, Open World',released:'2021',initials:'FH'},
-  {id:6,name:'Halo Infinite',platform:'xbox',installed:false,developer:'343 Industries',publisher:'Xbox Game Studios',desc:'The legendary Halo series continues with the most ambitious Master Chief story yet and free-to-play multiplayer.',color:'#3498db',genre:'FPS, Sci-Fi',released:'2021',initials:'HI'},
-  {id:7,name:'Starfield',platform:'xbox',installed:false,developer:'Bethesda Game Studios',publisher:'Bethesda Softworks',desc:'Explore the vastness of space in Bethesda\'s epic RPG. Build ships, discover planets, and forge your own destiny.',color:'#8e44ad',genre:'RPG, Sci-Fi, Open World',released:'2023',initials:'SF'},
-  {id:8,name:'Fortnite',platform:'epic',installed:true,developer:'Epic Games',publisher:'Epic Games',desc:'The free-to-play battle royale phenomenon. Build, fight, and be the last one standing with constant updates.',color:'#4a9eff',genre:'Battle Royale, Building',released:'2017',initials:'FN'},
+  {id:5,name:'Fortnite',platform:'epic',installed:true,developer:'Epic Games',publisher:'Epic Games',desc:'The free-to-play battle royale phenomenon. Build, fight, and be the last one standing with constant updates.',color:'#4a9eff',genre:'Battle Royale, Building',released:'2017',initials:'FN'},
   {id:9,name:'Rocket League',platform:'epic',installed:true,developer:'Psyonix',publisher:'Epic Games',desc:'Soccer meets driving in this fast-paced multiplayer sports game with rocket-powered vehicles.',color:'#e67e22',genre:'Sports, Racing, Arcade',released:'2015',initials:'RL'},
   {id:10,name:'Alan Wake 2',platform:'epic',installed:false,developer:'Remedy Entertainment',publisher:'Epic Games',desc:'The long-awaited survival horror sequel. A psychological thriller blending intense action with a gripping narrative.',color:'#1a1a2e',genre:'Survival Horror, Thriller',released:'2023',initials:'AW'},
   {id:11,name:'Cyberpunk 2077',platform:'local',installed:true,developer:'CD Projekt Red',publisher:'CD Projekt',desc:'An open-world action RPG set in the dark future of Night City. Upgrade your body and rewrite your destiny.',color:'#ff007f',genre:'Action RPG, Open World, Sci-Fi',released:'2020',initials:'CP'},
@@ -575,11 +553,10 @@ function switchView(view){
   state.view=view;
   sidebarNav.forEach(function(n){n.classList.toggle('active',n.dataset.view===view)});
   viewEls.forEach(function(v){v.classList.toggle('active',v.id==='view-'+view)});
-  var names={library:'Game Library',steam:'Steam',xbox:'Xbox Game Pass',epic:'Epic Games',settings:'Settings'};
+  var names={library:'Game Library',steam:'Steam',epic:'Epic Games',settings:'Settings'};
   titleEl.textContent=names[view]||'GameVault';
   if(view==='library'){renderLibrary();}
   if(view==='steam'){renderStore('steam');}
-  if(view==='xbox'){renderStore('xbox');}
   if(view==='epic'){renderStore('epic');}
   if(view==='settings'){}
 }
@@ -593,7 +570,7 @@ $$('.store-view-lib').forEach(function(b){b.addEventListener('click',function(){
 
 $$('[data-store]').forEach(function(b){b.addEventListener('click',function(){
   var store=b.dataset.store;
-  var urls={steam:'https://store.steampowered.com',xbox:'https://www.xbox.com/en-US/games',epic:'https://store.epicgames.com/en-US'};
+  var urls={steam:'https://store.steampowered.com',epic:'https://store.epicgames.com/en-US'};
   var url=urls[store]||'https://store.steampowered.com';
 
   // Linux: try xdg-open first (opens Steam native app if installed via steam://)
@@ -721,8 +698,8 @@ function renderFSHero(){
   $('#fs-hero-title').textContent=g.name;
   var badge=$('#fs-hero-badge');
   badge.textContent=g.platform.charAt(0).toUpperCase()+g.platform.slice(1);
-  var pc={steam:'var(--steam)',xbox:'var(--xbox)',epic:'var(--epic)',local:'var(--text2)'};
-  var bc={steam:'rgba(102,192,244,.2)',xbox:'rgba(155,240,11,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
+  var pc={steam:'var(--steam)',epic:'var(--epic)',local:'var(--text2)'};
+  var bc={steam:'rgba(102,192,244,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
   badge.style.background=bc[g.platform]||bc.local;
   badge.style.color=pc[g.platform]||pc.local;
   $('#fs-hero-dev').textContent=g.developer;
@@ -731,8 +708,8 @@ function renderFSHero(){
 }
 
 function badgeStyles(g){
-  var pc={steam:'var(--steam)',xbox:'var(--xbox)',epic:'var(--epic)',local:'var(--text2)'};
-  var bc={steam:'rgba(102,192,244,.2)',xbox:'rgba(155,240,11,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
+  var pc={steam:'var(--steam)',epic:'var(--epic)',local:'var(--text2)'};
+  var bc={steam:'rgba(102,192,244,.2)',epic:'rgba(155,89,182,.2)',local:'rgba(255,255,255,.08)'};
   return 'background:'+(bc[g.platform]||bc.local)+';color:'+(pc[g.platform]||pc.local);
 }
 
@@ -747,7 +724,6 @@ function renderFSShelves(){
     return '<div class="fs-shelf-card'+nc+'" data-id="'+g.id+'"><div class="shelf-cover" style="'+coverStyle(g)+'"><span class="initials">'+g.initials+'</span></div><div class="shelf-info"><div class="shelf-name">'+g.name+'</div><span class="shelf-badge" style="'+badgeStyles(g)+'">'+g.platform+'</span></div></div>';
   }).join('');
   $('#fs-steam-count').textContent=games.filter(function(g){return g.platform==='steam'}).length+' games';
-  $('#fs-xbox-count').textContent=games.filter(function(g){return g.platform==='xbox'}).length+' games';
   $('#fs-epic-count').textContent=games.filter(function(g){return g.platform==='epic'}).length+' games';
 }
 

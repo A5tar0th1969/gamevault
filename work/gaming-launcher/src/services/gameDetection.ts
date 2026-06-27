@@ -12,11 +12,6 @@ export async function detectInstalledGames(): Promise<Game[]> {
   } catch {}
 
   try {
-    const games = await scanXboxLibrary()
-    detected.push(...games)
-  } catch {}
-
-  try {
     const games = await scanEpicLibrary()
     detected.push(...games)
   } catch {}
@@ -48,13 +43,6 @@ function getSteamPath(): string {
 
 async function scanSteamLibrary(_path: string): Promise<Game[]> {
   // TODO: Parse Steam libraryfolders.vdf and app manifests
-  return []
-}
-
-async function scanXboxLibrary(): Promise<Game[]> {
-  // Xbox Game Pass is Windows-only, return empty on Linux/macOS
-  if (platform !== 'win32') return []
-  // TODO: Scan Xbox app installation directories
   return []
 }
 

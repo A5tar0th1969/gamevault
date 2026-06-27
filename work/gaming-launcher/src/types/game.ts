@@ -2,7 +2,7 @@ export interface Game {
   id: string
   name: string
   coverUrl: string
-  platform: 'steam' | 'xbox' | 'epic' | 'local'
+  platform: 'steam' | 'epic' | 'local'
   storeUrl?: string
   isInstalled: boolean
   lastPlayed?: Date
@@ -14,4 +14,4 @@ export interface Game {
   genres?: string[]
 }
 
-export type ViewSection = 'library' | 'steam' | 'xbox' | 'epic' | 'settings'
+export type ViewSection = 'library' | 'steam' | 'epic' | 'settings'

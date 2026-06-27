@@ -5,7 +5,6 @@ import './Sidebar.css'
 const navItems = [
   { id: 'library' as const, label: 'Library', icon: '🎮', section: 'main' },
   { id: 'steam' as const, label: 'Steam', icon: '🟦', section: 'stores' },
-  { id: 'xbox' as const, label: 'Xbox Game Pass', icon: '🟩', section: 'stores' },
   { id: 'epic' as const, label: 'Epic Games', icon: '🟪', section: 'stores' },
   { id: 'settings' as const, label: 'Settings', icon: '⚙️', section: 'bottom' },
 ]
@@ -20,7 +19,6 @@ export default function Sidebar() {
 
   const getActiveClass = (id: string) => {
     if (id === 'steam' && currentView === 'steam') return 'steam-active'
-    if (id === 'xbox' && currentView === 'xbox') return 'xbox-active'
     if (id === 'epic' && currentView === 'epic') return 'epic-active'
     return ''
   }

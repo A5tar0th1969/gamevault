@@ -95,7 +95,7 @@ export default function Settings({ onToggleFullscreen }: SettingsProps) {
           <div className="settings-about-version">Version 1.0.0</div>
           <div className="settings-about-desc">
             A gaming UI launcher inspired by Playnite and Steam.
-            Integrates Steam Store, Xbox Game Pass, and Epic Game Store.
+            Integrates Steam Store and Epic Game Store.
             Fullscreen mode powered by Aniki ReMake UI design.
           </div>
         </div>

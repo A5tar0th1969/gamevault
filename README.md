@@ -1,13 +1,13 @@
 # GameVault — Cross-Platform Gaming Launcher
 
-> A gaming UI launcher like Playnite/Steam with Steam Store, Xbox Game Pass, and Epic Game Store integration. Features a built-in fullscreen game mode inspired by Steam Big Picture / SteamOS with the Aniki ReMake UI design.
+> A gaming UI launcher like Playnite/Steam with Steam Store and Epic Game Store integration. Features a built-in fullscreen game mode inspired by Steam Big Picture / SteamOS with the Aniki ReMake UI design.
 
 ---
 
 ## ✨ Features
 
-- **Unified Library** — Browse all your games from Steam, Xbox Game Pass, Epic Games Store, and local installs in one place
-- **Store Integration** — Quick access to Steam Store, Xbox Game Pass catalog, and Epic Games Store
+- **Unified Library** — Browse all your games from Steam, Epic Games Store, and local installs in one place
+- **Store Integration** — Quick access to Steam Store and Epic Games Store
 - **Fullscreen Game Mode** — Immersive Big Picture-style interface with hero banners, game shelves, and store cards
 - **Aniki ReMake UI** — Dark, modern theme inspired by the popular Playnite theme
 - **Game Details** — Rich modal overlay with metadata, genres, descriptions, and developer info
@@ -58,7 +58,7 @@ Click the **Fullscreen** button in the top bar or press **F11** to enter fullscr
 
 - Hero section with blurred game art, cover, title, and Play/Info buttons
 - "Continue Playing" shelf with installed games
-- Store cards (Steam / Xbox / Epic) with game counts
+- Store cards (Steam / Epic) with game counts
 - "Installed Games" shelf
 - Live clock display
 - Navigate via top nav bar
@@ -92,7 +92,7 @@ Click the **Fullscreen** button in the top bar or press **F11** to enter fullscr
     │   │   ├── GameDetailsPanel.tsx # Modal game details
     │   │   └── Settings.tsx      # Settings panel
     │   ├── services/
-    │   │   ├── gameDetection.ts  # Local game scanner (Steam/Xbox/Epic/Linux)
+    │   │   ├── gameDetection.ts  # Local game scanner (Steam/Epic/Linux)
     │   │   └── storeIntegration.ts
     │   └── store/
     │       ├── gameStore.ts      # Zustand game state

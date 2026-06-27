@@ -58,8 +58,6 @@ function App() {
         return <LibraryView />
       case 'steam':
         return <StoreView platform="steam" />
-      case 'xbox':
-        return <StoreView platform="xbox" />
       case 'epic':
         return <StoreView platform="epic" />
       case 'settings':

@@ -198,11 +198,6 @@
   color: var(--steam-blue);
 }
 
-.fullscreen-hero-platform.xbox {
-  background: rgba(155, 240, 11, 0.2);
-  color: var(--xbox-green);
-}
-
 .fullscreen-hero-platform.epic {
   background: rgba(155, 89, 182, 0.2);
   color: var(--epic-purple);
@@ -349,11 +344,6 @@
   box-shadow: 0 0 20px rgba(74, 158, 255, 0.2);
 }
 
-.fullscreen-game-tile.active .fullscreen-game-tile-cover.xbox-active {
-  border-color: var(--xbox-green);
-  box-shadow: 0 0 20px rgba(155, 240, 11, 0.2);
-}
-
 .fullscreen-game-tile.active .fullscreen-game-tile-cover.epic-active {
   border-color: var(--epic-purple);
   box-shadow: 0 0 20px rgba(155, 89, 182, 0.2);
@@ -388,7 +378,7 @@
 /* Featured game views */
 .fullscreen-featured-stores {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -414,14 +404,6 @@
 
 .fullscreen-store-card.steam:hover {
   border-color: rgba(102, 192, 244, 0.3);
-}
-
-.fullscreen-store-card.xbox {
-  background: linear-gradient(135deg, rgba(16, 124, 16, 0.3), rgba(155, 240, 11, 0.1));
-}
-
-.fullscreen-store-card.xbox:hover {
-  border-color: rgba(155, 240, 11, 0.3);
 }
 
 .fullscreen-store-card.epic {
